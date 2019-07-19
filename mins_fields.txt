@@ -1,0 +1,9 @@
+_id
+code
+time
+open
+close
+low
+high
+volume
+amount
