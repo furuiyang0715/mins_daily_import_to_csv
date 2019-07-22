@@ -45,8 +45,8 @@ def wirte_code_date_to_file():
         file_name = os.path.join(file_path, code)
         command = "mongoexport -d stock -c mins -q '{}' --fieldFile mins_fields.txt --type=csv --out {}.csv".format(q, file_name)
         # print(command)
-        # TODO 将shell执行日志写入文件中
-        subprocess.call(command, shell=True)
+        log_file = open("export_log.log", "a+")
+        subprocess.call(command, shell=True, stderr=log_file)
 
 
 if __name__ == "__main__":
@@ -65,6 +65,7 @@ if __name__ == "__main__":
     print((t2 - t1)/60, "min")
 
     pass
+
 
 
 
