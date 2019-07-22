@@ -1,4 +1,8 @@
+import datetime
 import json
+import os
+import subprocess
+import time
 
 import pymongo
 
@@ -20,6 +24,31 @@ def write_codes_to_file(codes):
         json.dump(codes, f)
 
 
+def wirte_code_date_to_file():
+    # 确定同步的边界时间
+    # 开始时间是昨天的零点 结束时间是今天的零点
+    dt1 = datetime.datetime.combine(datetime.date.today() - datetime.timedelta(days=1), datetime.time.min).strftime("%Y-%m-%dT%H:%M:%SZ")
+    dt2 = datetime.datetime.combine(datetime.date.today(), datetime.time.min).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # 同步的是昨日的增量数据 文件夹以昨天命名
+    date_int_str = datetime.datetime.combine(datetime.date.today() - datetime.timedelta(days=1), datetime.time.min).strftime("%Y%m%d")
+
+    file_path = os.path.join(os.getcwd(), "exportdir/" + date_int_str)
+    os.makedirs(file_path, exist_ok=True)
+
+    f = open("codes.py", "r")
+    codes = json.load(f)
+    f.close()
+
+    for code in codes:
+        q = '{{code:"{0}",time: {{$gte:ISODate("{1}"), $lte:ISODate("{2}")}}}}'.format(code, dt1, dt2)
+        file_name = os.path.join(file_path, code)
+        command = "mongoexport -d stock -c mins -q '{}' --fieldFile mins_fields.txt --type=csv --out {}.csv".format(q, file_name)
+        # print(command)
+        # TODO 将shell执行日志写入文件中
+        subprocess.call(command, shell=True)
+
+
 if __name__ == "__main__":
     # now_codes = all_codes_now()
     # write_codes_to_file(now_codes)
@@ -30,6 +59,10 @@ if __name__ == "__main__":
     # print(codes)
     # print(len(codes))
     # print(type(codes))
+    t1 = time.time()
+    wirte_code_date_to_file()
+    t2 = time.time()
+    print((t2 - t1)/60, "min")
 
     pass
 
