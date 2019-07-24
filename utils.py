@@ -54,27 +54,27 @@ def wirte_code_date_to_file():
         subprocess.call(command, shell=True, stderr=log_file)
 
 
-def merge_csv(Folder_Path, SaveFile_Path, SaveFile_Name):
+def merge_csv(folder_path, savefile_path, savefile_name):
     """
     将多个 csv 文件合并成一个
-    :param Folder_Path: 需要拼接的文件夹的完整路径
-    :param SaveFile_Path: 拼接后要保存到的文件夹路劲
-    :param SaveFile_Name: 拼接后要保存的文件名
+    :param folder_path:
+    :param savefile_path:
+    :param savefile_name:
     :return:
     """
     # 修改当前工作目录
-    os.chdir(Folder_Path)
+    os.chdir(folder_path)
     # 将该文件夹下的所有文件名存入一个列表
     file_list = os.listdir()
 
     # 读取第一个CSV文件并包含表头
-    df = pd.read_csv(os.path.join(Folder_Path, file_list[0]))
+    df = pd.read_csv(os.path.join(folder_path, file_list[0]))
 
     # 创建要保存的文件夹
-    os.makedirs(SaveFile_Path, exist_ok=True)
+    os.makedirs(savefile_path, exist_ok=True)
 
     # 将读取的第一个CSV文件写入合并后的文件保存
-    save_file = os.path.join(SaveFile_Path, SaveFile_Name)
+    save_file = os.path.join(savefile_path, savefile_name)
     df.to_csv(save_file)
 
     # 循环遍历列表中各个CSV文件名，并追加到合并后的文件
@@ -82,7 +82,7 @@ def merge_csv(Folder_Path, SaveFile_Path, SaveFile_Name):
     try:
         for i in range(1, len(file_list)):
             # print(os.path.join(Folder_Path, file_list[i]))
-            df = pd.read_csv(os.path.join(Folder_Path, file_list[i]))
+            df = pd.read_csv(os.path.join(folder_path, file_list[i]))
             # print(df)
             # print(df.shape[0])
             # count += df.shape[0]
@@ -105,12 +105,22 @@ if __name__ == "__main__":
     # print(codes)
     # print(len(codes))
     # print(type(codes))
-    t1 = time.time()
-    wirte_code_date_to_file()
-    t2 = time.time()
-    print((t2 - t1)/60, "min")
+    # t1 = time.time()
+    # wirte_code_date_to_file()
+    # t2 = time.time()
+    # print((t2 - t1)/60, "min")
+
+    # test merge csv
+    # t1 = time.time()
+    # folder_path = "/Users/furuiyang/codes/mins_daily_import_to_csv/exportdir/20190720"
+    # save_file_path = "/Users/furuiyang/codes/mins_daily_import_to_csv/savedir/20190720"
+    # save_file_name = "20190720.csv"
+    # merge_csv(folder_path, save_file_path, save_file_name)
+    # t2 = time.time()
+    # print(t2 - t1)
 
     pass
+
 
 
 
