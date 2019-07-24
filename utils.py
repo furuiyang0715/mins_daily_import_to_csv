@@ -1,5 +1,7 @@
 import datetime
+import functools
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -9,12 +11,16 @@ import time
 import pymongo
 import pandas as pd
 import pymysql
+import schedule
+from raven import Client
 from sqlalchemy import create_engine
 
-from config import MONGOURL, MYSQLHOST, MYSQLUSER, MYSQLPASSWORD, MYSQLPORT, MYSQLDB, MYSQLTABLE
+from config import MONGOURL, MYSQLHOST, MYSQLUSER, MYSQLPASSWORD, MYSQLPORT, MYSQLDB, MYSQLTABLE, SENTRY_DSN
 
+logger = logging.getLogger("main_log")
 db = pymongo.MongoClient(MONGOURL)
 coll = db.stock.mins
+sentry = Client(SENTRY_DSN)
 
 
 def all_codes_now():
@@ -182,6 +188,9 @@ def gen_temp_times(start, end):
 
 def gene(dt1, dt2, date_int_str):
     """整个生成逻辑"""
+    logger.info(f"dt1:{dt1}")
+    logger.info(f"dt2:{dt2}")
+
     mysqlhost = MYSQLHOST
     user = MYSQLUSER
     password = MYSQLPASSWORD
@@ -205,6 +214,8 @@ def gene(dt1, dt2, date_int_str):
 
     # 将 csv 文件进行合并 并且计算被导入的增量数量
     count = merge_csv(folder_path, save_file_path, save_file_name)
+    logger.info(f"由csv文件计算出的当天需要进行增量的数据量为 {count}")
+    sentry.captureMessage(f"需要进行增量的数据量为 {count}")
 
     # 检查与 mongo 中的增量结果是否一致
     # 这个查询也比较耗时 先不检查了
@@ -229,13 +240,38 @@ def gene(dt1, dt2, date_int_str):
         sql_count = DATACENTER.execute(query_sql).first()[0]
 
         if sql_count != count:
-            sys.exit(1)
+            raise RuntimeError("数据量不一致，请检查！")
 
     # 合并后删除原始的 csv 文件
     shutil.rmtree(folder_path, ignore_errors=True)
+    logger.info(f"任务完成 删除当日过程 csv 文件 ")
 
 
+def catch_exceptions(cancel_on_failure=False):
+    def catch_exceptions_decorator(job_func):
+        @functools.wraps(job_func)
+        def wrapper(*args, **kwargs):
+            try:
+                return job_func(*args, **kwargs)
+            except:
+                import traceback
+                logger.warning(traceback.format_exc())
+                sentry.captureException(exc_info=True)
+                if cancel_on_failure:
+                    # print(schedule.CancelJob)
+                    # schedule.cancel_job()
+                    return schedule.CancelJob
+        return wrapper
+    return catch_exceptions_decorator
+
+
+@catch_exceptions
 def main():
+    import_date_str = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    logger.info(f"现在是 {datetime.datetime.today()}, 开始增量 stock.mins 在 "
+                f"{import_date_str} 全天的增量数据到 mysql 数据库")
+    sentry.captureMessage(f"现在是 {datetime.datetime.today()}, 开始增量 stock.mins 在 "
+                          f"{import_date_str} 全天的增量数据到 mysql 数据库")
     dt1, dt2, date_int_str = gen_times()
     gene(dt1, dt2, date_int_str)
 
@@ -333,9 +369,3 @@ if __name__ == "__main__":
     # shutil.rmtree(folder_path, ignore_errors=True)
 
     pass
-
-
-
-
-
-
