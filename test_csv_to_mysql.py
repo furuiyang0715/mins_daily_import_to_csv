@@ -28,6 +28,7 @@ ignore 1 lines(Id,@dummy,DayOfWeek,PdDistrict,Address,X,Y);  # 忽略第一行 �
 
 # 建表
 """
+CREATE DATABASE stock;
 CREATE TABLE IF NOT EXISTS `inc_mins`(
    `_id` VARCHAR(100) NOT NULL,
    `code` VARCHAR(100) NOT NULL,
