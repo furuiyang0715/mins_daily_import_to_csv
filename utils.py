@@ -277,7 +277,7 @@ if __name__ == "__main__":
     # print(time.time() - t1)  # 55s
 
     # 写入分散的 csv 文件
-    # dt1, dt2, date_int_str = gen_times()
+    dt1, dt2, date_int_str = gen_times()
     # t1 = time.time()
     # wirte_code_date_to_file(dt1, dt2, date_int_str)
     # t2 = time.time()
@@ -289,8 +289,8 @@ if __name__ == "__main__":
 
     # test merge csv
     # dt1, dt2, date_int_str = gen_times()
-    # export_path = os.path.join(os.getcwd(), "exportdir")
-    # folder_path = os.path.join(export_path, date_int_str)
+    export_path = os.path.join(os.getcwd(), "exportdir")
+    folder_path = os.path.join(export_path, date_int_str)
     # save_file_path = os.path.join(os.getcwd(), "savedir")
     # save_file_name = date_int_str + ".csv"
     #
@@ -328,6 +328,9 @@ if __name__ == "__main__":
     # DATACENTER = create_engine(mysql_string)
     # sql_count = DATACENTER.execute(query_sql).first()[0]
     # print(sql_count)  # 1309440
+
+    # 测试删除合并后的文件夹
+    # shutil.rmtree(folder_path, ignore_errors=True)
 
     pass
 
