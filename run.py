@@ -56,3 +56,7 @@ logging.config.dictConfig({
 
 
 logger = logging.getLogger("main_log")
+
+
+if __name__ == "__main__":
+    run()
