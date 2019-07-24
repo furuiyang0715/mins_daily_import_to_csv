@@ -7,6 +7,7 @@ import time
 
 import pymongo
 import pandas as pd
+import pymysql
 
 from config import MONGOURL
 
@@ -95,6 +96,34 @@ def merge_csv(folder_path, savefile_path, savefile_name):
         pass
 
 
+def csv_to_mysql(load_sql, host, user, password):
+    """
+    This function load a csv file to MySQL table according to
+    the load_sql statement.
+    :param load_sql:
+    :param host:
+    :param user:
+    :param password:
+    :return:
+    """
+    try:
+        con = pymysql.connect(host=host,
+                              user=user,
+                              password=password,
+                              autocommit=True,
+                              local_infile=1)
+        print('Connected to DB: {}'.format(host))
+        # Create cursor and execute Load SQL
+        cursor = con.cursor()
+        cursor.execute(load_sql)
+        print('Succuessfully loaded the table from csv.')
+        con.close()
+
+    except Exception as e:
+        print('Error: {}'.format(str(e)))
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     # now_codes = all_codes_now()
     # write_codes_to_file(now_codes)
@@ -117,9 +146,30 @@ if __name__ == "__main__":
     # save_file_name = "20190720.csv"
     # merge_csv(folder_path, save_file_path, save_file_name)
     # t2 = time.time()
-    # print(t2 - t1)
+    # print(t2 - t1)  # 81 s 左右
+
+
+    # test csv to mysql
+    t1 = time.time()
+    load_sql = """LOAD DATA LOCAL INFILE '/Users/furuiyang/codes/mins_daily_import_to_csv/savedir/20190720/20190720.csv' \
+    REPLACE INTO TABLE test01.inc_mins \
+    FIELDS TERMINATED BY ',' \
+    ENCLOSED BY '"' \
+    IGNORE 1 LINES;"""
+
+    print(load_sql)
+
+    host = 'localhost'
+    user = 'root'
+    password = 'ruiyang'
+    csv_to_mysql(load_sql, host, user, password)
+
+    t2 = time.time()
+    print(t2 - t1)   # 160 s 左右
 
     pass
+
+
 
 
 
